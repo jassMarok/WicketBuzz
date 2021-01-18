@@ -11,6 +11,8 @@ const WICKET = "W";
 const SIX = "6";
 const FOUR = "4";
 
+const REVIEW_COLLECTION = ["reviewed", "review", "drs"];
+
 const port = new SerialPort(SERIAL_PORT, {
     baudRate: SERIAL_BAUD,
 });
@@ -34,14 +36,13 @@ function checkBall(recentBalls) {
     filteredString = filteredString .replaceAll(" ", "");
     
     let ballsArray = filteredString.split("");
-    console.log("Recent Balls :", ballsArray);
-
     var last3Balls = ballsArray.slice(ballsArray.length - 3, ballsArray.length);
-    console.log("Last Three Balls : ", last3Balls);
-
     var lastBall = last3Balls[last3Balls.length - 1];
 
-    if(last3Balls.includes(WICKET) || last3Balls.includes(WICKET.toLowerCase())){
+    console.log("Recent Balls :", ballsArray);
+    console.log("Last Ball : ", lastBall);
+
+    if(lastBall === WICKET ||  lastBall === WICKET.toLowerCase()){
         writeToAurduino(WICKET);
     }
 
@@ -63,7 +64,6 @@ function checkCommentry(commentry){
     const lastestCommentry = commentry[0].toLowerCase();
 
     console.log("Latest Commentry : ", lastestCommentry);
-
     if(lastestCommentry.includes("review")){
         writeToAurduino("R");
     }
@@ -78,8 +78,7 @@ function writeToAurduino($msg){
 function requestData(){
     axios.get(API_URL + MATCH_URL)
             .then((response) => {
-                console.log(response);
-                checkBall(response.data.livescore.lastwicket);
+                checkBall(response.data.livescore.recentballs);
                 checkCommentry(response.data.livescore.commentary);
             }).catch((err)=>{
                 console.log("Error Occured:", err);
