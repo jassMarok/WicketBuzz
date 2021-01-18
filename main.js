@@ -8,6 +8,8 @@ const SERIAL_PORT = "/dev/cu.usbmodem14401";
 const SERIAL_BAUD = 9600;
 
 const WICKET = "W";
+const SIX = "6";
+const FOUR = "4";
 
 const port = new SerialPort(SERIAL_PORT, {
     baudRate: SERIAL_BAUD,
@@ -25,7 +27,7 @@ parser.on('data', data =>{
 });
 
 
-function checkWicket(recentBalls) {
+function checkBall(recentBalls) {
     //Filter Recent Balls
     let filteredString = recentBalls.replaceAll("|", "");
     filteredString = filteredString .replaceAll(".", "");
@@ -37,14 +39,34 @@ function checkWicket(recentBalls) {
     var last3Balls = ballsArray.slice(ballsArray.length - 3, ballsArray.length);
     console.log("Last Three Balls : ", last3Balls);
 
+    var lastBall = last3Balls[last3Balls.length - 1];
+
     if(last3Balls.includes(WICKET) || last3Balls.includes(WICKET.toLowerCase())){
         writeToAurduino(WICKET);
     }
 
-    //For Testing
-    // if(last3Balls.includes("0")){
-    //     writeToAurduino(WICKET);
-    // }
+    if(lastBall === FOUR){
+        writeToAurduino("F");
+    }
+
+    if(lastBall === SIX ){
+        writeToAurduino("S");
+    }
+
+
+    // For Testing
+    // writeToAurduino("R");
+
+}
+
+function checkCommentry(commentry){
+    const lastestCommentry = commentry[0].toLowerCase();
+
+    console.log("Latest Commentry : ", lastestCommentry);
+
+    if(lastestCommentry.includes("review")){
+        writeToAurduino("R");
+    }
 }
 
 function writeToAurduino($msg){
@@ -57,7 +79,8 @@ function requestData(){
     axios.get(API_URL + MATCH_URL)
             .then((response) => {
                 console.log(response);
-                checkWicket(response.data.livescore.lastwicket);
+                checkBall(response.data.livescore.lastwicket);
+                checkCommentry(response.data.livescore.commentary);
             }).catch((err)=>{
                 console.log("Error Occured:", err);
     });
@@ -67,7 +90,7 @@ function main() {
     requestData();
     setInterval(()=>{
         requestData();
-    }, 30*1000);
+    }, 10*1000);
 }
 
 main();
